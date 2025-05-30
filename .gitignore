@@ -1,0 +1,29 @@
+# Go binaries
+*.exe
+*.out
+*.test
+
+# Vendor directory
+/vendor/
+
+# IDE files
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# OS-specific files
+.DS_Store
+
+# Docker files
+docker-compose.override.yml
+
+# Cache files
+/cache/
+
+# Postgres data volume
+/pgdata

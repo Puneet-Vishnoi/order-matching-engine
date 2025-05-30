@@ -1,0 +1,65 @@
+services:
+  app:
+    build: .
+    container_name: coupon-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - test-postgres
+      - test-redis
+    networks:
+      - coupon-network
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:15
+    container_name: coupon-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Puneet
+      POSTGRES_DB: coupon-system
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    networks:
+      - coupon-network
+
+  test-postgres:
+    image: postgres:15
+    container_name: coupon-test-postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_DB: coupon-test-db
+    networks:
+      - coupon-network
+
+  redis:
+    image: redis:8
+    container_name: coupon-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - coupon-network
+
+  test-redis:
+    image: redis:8
+    container_name: coupon-test-redis
+    restart: always
+    ports:
+      - "6380:6379"
+    networks:
+      - coupon-network
+
+networks:
+  coupon-network:
+    driver: bridge

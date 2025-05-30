@@ -1,0 +1,31 @@
+# Binaries and build artifacts
+bin/
+*.exe
+*.out
+*.o
+
+# Vendor directory (if you're not using it)
+vendor/
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env.*
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# Docker-related
+Dockerfile*
+docker-compose*
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Postgres data volume
+pgdata/
