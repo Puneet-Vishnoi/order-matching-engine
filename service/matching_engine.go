@@ -79,11 +79,13 @@ func (e *MatchingEngine) Match(
 	incoming.RemainingQty = remaining
 	switch {
 	case remaining == 0:
-		incoming.Status = "filled"
+		incoming.Status = "filled" // Order is completely filled
+	case remaining < incoming.Quantity:
+		incoming.Status = "partial" // Order is partially filled
 	case incoming.Type == "market":
-		incoming.Status = "partial"
+		incoming.Status = "canceled" // Market order that couldn't be filled should be canceled
 	case incoming.Type == "limit":
-		incoming.Status = "partial" // might stay on book
+		incoming.Status = "open" // Limit order that hasn't matched yet remains open
 	}
 
 	return trades, updatedOrders, nil

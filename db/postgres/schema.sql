@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS orders;
 CREATE TABLE orders (
     id BIGSERIAL PRIMARY KEY,
     symbol VARCHAR(20) NOT NULL,
-    side VARCHAR(4) CHECK (side IN ('buy', 'sell')) NOT NULL,
+    side VARCHAR(10) CHECK (side IN ('buy', 'sell')) NOT NULL,
     type VARCHAR(6) CHECK (type IN ('limit', 'market')) NOT NULL,
     price NUMERIC(12, 2),
     quantity INTEGER NOT NULL CHECK (quantity > 0),

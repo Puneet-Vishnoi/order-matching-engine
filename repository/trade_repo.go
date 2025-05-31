@@ -8,14 +8,6 @@ import (
 	"github.com/Puneet-Vishnoi/order-matching-engine/models"
 )
 
-// type OrderRepository struct {
-// 	DBHelper *providers.DBHelper
-// }
-
-// func NewOrderRepository(db *providers.DBHelper) *OrderRepository {
-// 	return &OrderRepository{DBHelper: db}
-// }
-
 type TradeRepository struct {
 	DBHelper *providers.DBHelper
 }
@@ -24,23 +16,29 @@ func NewTradeRepository(db *providers.DBHelper) *TradeRepository {
 	return &TradeRepository{DBHelper: db}
 }
 
-// CreateTrade saves a trade in the DB
+// CreateTrade saves a trade in the DB and retrieves its ID
 func (r *TradeRepository) CreateTrade(ctx context.Context, tx *sql.Tx, trade *models.Trade) error {
 	query := `
 		INSERT INTO trades (buy_order_id, sell_order_id, price, quantity, created_at)
-		VALUES ($1, $2, $3, $4, $5)`
-	_, err := tx.ExecContext(ctx, query, trade.BuyOrderID, trade.SellOrderID, trade.Price, trade.Quantity, trade.CreatedAt)
-	return err
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id`
+	return tx.QueryRowContext(ctx, query,
+		trade.BuyOrderID,
+		trade.SellOrderID,
+		trade.Price,
+		trade.Quantity,
+		trade.CreatedAt,
+	).Scan(&trade.ID)
 }
 
 // ListTradesBySymbol fetches trades for a symbol
 func (r *TradeRepository) ListTradesBySymbol(ctx context.Context, symbol string) ([]models.Trade, error) {
 	query := `
-		SELECT t.id, t.buy_order_id, t.sell_order_id, t.price, t.quantity, t.created_at
+		SELECT DISTINCT ON (t.id) t.id, t.buy_order_id, t.sell_order_id, t.price, t.quantity, t.created_at
 		FROM trades t
 		JOIN orders o ON o.id = t.buy_order_id OR o.id = t.sell_order_id
 		WHERE o.symbol = $1
-		ORDER BY t.created_at DESC`
+		ORDER BY t.id, t.created_at DESC`
 
 	rows, err := r.DBHelper.PostgresClient.QueryContext(ctx, query, symbol)
 	if err != nil {

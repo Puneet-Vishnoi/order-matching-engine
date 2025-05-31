@@ -69,6 +69,7 @@ func (db *Db) Stop() {
 }
 
 func (db *Db) InitSchema() error {
+	
 	schemaPath := filepath.Join("db", "postgres", "schema.sql")
 	content, err := os.ReadFile(schemaPath)
 	if err != nil {

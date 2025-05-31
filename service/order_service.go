@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"time"
@@ -42,8 +41,6 @@ func (s *OrderService) PlaceOrder(ctx context.Context, req *models.PlaceOrderReq
 		}
 	}()
 
-	log.Println(req, " req")
-
 	order := models.Order{
 		Symbol:       req.Symbol,
 		Side:         req.Side,
@@ -54,29 +51,18 @@ func (s *OrderService) PlaceOrder(ctx context.Context, req *models.PlaceOrderReq
 		Status:       "open",
 		CreatedAt:    time.Now(),
 	}
-
 	// Step 1: Insert Order
 	orderID, err := s.OrderRepo.CreateOrder(ctx, tx, &order)
 	if err != nil {
 		return nil, err
 	}
 	order.ID = orderID
-	log.Println(order, "  order")
-
-
-	log.Println(orderID, " oid")
-
 
 	// Step 2: Match Order (get counter-orders and execute trades)
 	trades, updatedOrders, err := s.MatchingEngine.Match(ctx, tx, &order, s.OrderRepo)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(trades, " trades")
-	log.Println(updatedOrders, " updatedo")
-
-
 	// Step 3: Save Trades
 	for _, trade := range trades {
 		if err := s.TradeRepo.CreateTrade(ctx, tx, &trade); err != nil {
@@ -95,7 +81,6 @@ func (s *OrderService) PlaceOrder(ctx context.Context, req *models.PlaceOrderReq
 	if err := s.OrderRepo.UpdateOrder(ctx, tx, &order); err != nil {
 		return nil, err
 	}
-	log.Println(order, "updated order")
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -209,9 +194,6 @@ func (s *OrderService) GetOrderBook(ctx context.Context, symbol string) (*models
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(buyOrders)
-	fmt.Println(sellOrders)
 
 	// Group orders by price level
 	bidMap := make(map[float64]int)

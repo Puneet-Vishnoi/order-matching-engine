@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/Puneet-Vishnoi/order-matching-engine/db/postgres/providers"
 	"github.com/Puneet-Vishnoi/order-matching-engine/models"
@@ -111,7 +113,11 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, tx *sql.Tx, id int64
 
 	err := row.Scan(&o.ID, &o.Symbol, &o.Side, &o.Type, &o.Price, &o.Quantity, &o.RemainingQty, &o.Status, &o.CreatedAt)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("order with ID %d not found", id)
+		}
+		return nil, fmt.Errorf("failed to get order by ID %d: %w", id, err)
 	}
+
 	return &o, nil
 }
