@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/Puneet-Vishnoi/order-matching-engine/models"
+	"github.com/Puneet-Vishnoi/order-matching-engine/service"
 	"github.com/Puneet-Vishnoi/order-matching-engine/tests/mockdb"
 	"github.com/go-playground/assert"
 )
 
-const baseURL = "http://localhost:8080/api"
+const baseURL = "http://app:8080/api"
 
 func TestOrderMatchingEngineIntegration(t *testing.T) {
 	// Initialize the test dependencies
@@ -37,10 +38,42 @@ func TestOrderMatchingEngineIntegration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clean up database before each test
+			t.Logf("Running test: %s", tt.name)
 			cleanupDatabase(t, testDeps)
 			tt.testFunc(t)
 		})
+	}
+}
+
+// Helper function to clean up database before each test
+func cleanupDatabase(t *testing.T, testDeps *mockdb.TestDeps) {
+	ctx := context.Background()
+
+	t.Log("Resetting Matching Engine state")
+	testDeps.Service.MatchingEngine = &service.MatchingEngine{}
+
+	t.Log("Truncating orders and trades tables")
+	_, err := testDeps.PostgresClient.PostgresClient.ExecContext(ctx, "TRUNCATE TABLE trades, orders RESTART IDENTITY CASCADE")
+	if err != nil {
+		t.Fatalf("failed to truncate tables: %v", err)
+	}
+
+	// Optional: Wait for cleanup confirmation
+	verifyTableIsEmpty(t, testDeps, "orders")
+	verifyTableIsEmpty(t, testDeps, "trades")
+}
+
+// Helper to verify table is empty
+func verifyTableIsEmpty(t *testing.T, testDeps *mockdb.TestDeps, table string) {
+	ctx := context.Background()
+	var count int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", table)
+	row := testDeps.PostgresClient.PostgresClient.QueryRowContext(ctx, query)
+	if err := row.Scan(&count); err != nil {
+		t.Fatalf("failed to verify %s: %v", table, err)
+	}
+	if count != 0 {
+		t.Fatalf("expected 0 rows in %s after cleanup, found %d", table, count)
 	}
 }
 
@@ -698,22 +731,5 @@ func testComplexMatchingScenarios(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.scenario(t)
 		})
-	}
-}
-
-// Helper function to clean up database before each test
-func cleanupDatabase(t *testing.T, testDeps *mockdb.TestDeps) {
-	ctx := context.Background()
-
-	// You might want to add cleanup methods to your repository
-	// For now, we'll assume there are methods like DeleteAllOrders, DeleteAllTrades
-	_, err := testDeps.PostgresClient.PostgresClient.ExecContext(ctx, "DELETE FROM trades")
-	if err != nil {
-		t.Logf("Warning: failed to clean trades: %v", err)
-	}
-
-	_, err = testDeps.PostgresClient.PostgresClient.ExecContext(ctx, "DELETE FROM orders")
-	if err != nil {
-		t.Logf("Warning: failed to clean orders: %v", err)
 	}
 }
