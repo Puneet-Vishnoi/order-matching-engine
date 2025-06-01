@@ -5,15 +5,14 @@ A high-performance order matching engine built with Go, PostgreSQL, and REST API
 ## 🏗️ Architecture
 
 ```
-golang-order-matching-system/
+order-matching-system/
 ├── db/postgres/                        # PostgreSQL DB setup
 │   ├── provider/providers.go
 │   └── database.go
 ├── cmd/app/                            # Application entry point
 │   └── main.go
 ├── handlers/                           # HTTP handlers
-│   ├── order_handler.go
-│   └── trade_handler.go
+│   ├── handler.go
 ├── service/                            # Core business logic
 │   ├── order_service.go
 │   └── matching_engine.go
