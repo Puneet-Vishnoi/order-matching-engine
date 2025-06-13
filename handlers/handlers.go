@@ -7,6 +7,7 @@ import (
 
 	"github.com/Puneet-Vishnoi/order-matching-engine/models"
 	"github.com/Puneet-Vishnoi/order-matching-engine/service"
+	"github.com/Puneet-Vishnoi/order-matching-engine/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -19,7 +20,7 @@ type OrderHandler struct {
 func NewOrderHandler(s *service.OrderService) *OrderHandler {
 	return &OrderHandler{
 		Service:   s,
-		Validator: validator.New(),
+		Validator: utils.GetValidator(),
 	}
 }
 
